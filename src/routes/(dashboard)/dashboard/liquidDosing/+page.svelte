@@ -1,8 +1,9 @@
 <script lang="ts">
+    //Dosing Report
     import "carbon-components-svelte/css/white.css";
-    import { OverflowMenu, OverflowMenuItem } from "carbon-components-svelte";
     import Button, { Group, Label } from "@smui/button";
     import { Search } from "carbon-components-svelte";
+    import { OverflowMenu, OverflowMenuItem } from "carbon-components-svelte";
     // import data from "../../../data.json";
     import { DatePicker, DatePickerInput } from "carbon-components-svelte";
     import DataTable, {
@@ -43,12 +44,14 @@
         StartTime: string;
         StopTime: string;
         Duration: string;
-        WeightSP: number;
-        WeightActual: number;
-        SumWeightDif: number;
+        WeightSP: string;
+        WeightActual: string;
+        SumWeightDif: string;
         Remark: string;
         SumWeightSP: number;
         SumWeightActual: number;
+        DosingNo: string;
+        MixerNo: string;
     };
     //state
     //let items: Todo[] = [];
@@ -72,7 +75,6 @@
     let textclass = "";
     textclass = processingItems == true ? "button1" : "button2";
     let link: any;
-
     // $: exportItems = items.filter((item) => item.JobNo);
     $: filteredItems = items.filter((item) => item.JobNo.includes(searchTerm));
     $: filteredItems2 = items_2.filter((item_2) =>
@@ -109,12 +111,11 @@
             link = value;
         });
         if (typeof fetch !== "undefined") {
-            const url = `${link}/Get/Batching/Report/Report_ByDate.php`;
+            const url = `${link}/Get/Dosing/Report/Report_ByDate.php`;
             fetch(url) // Send a GET request to the specified URL
                 .then((response) => response.json())
                 .then((json) => (items = json.slice(0)));
         }
-        // console.log(link);
     });
     async function searching() {
         x1_tag = document.getElementById("startdate").value;
@@ -126,7 +127,7 @@
         if (typeof fetch !== "undefined") {
             // Slice a few off the end to show how the
             // last page looks when it's not full.
-            const url1 = `${link}/Get/Batching/Report/Report_ByDate.php?date_get1=${x1_tag}&&date_get2=${x2_tag}`;
+            const url1 = `${link}/Get/Dosing/Report/Report_ByDate.php?date_get1=${x1_tag}&&date_get2=${x2_tag}`;
             fetch(url1)
                 .then((response) => response.json())
                 .then((json) => (items = json.slice(0)));
@@ -144,14 +145,15 @@
         if (typeof fetch !== "undefined") {
             // Slice a few off the end to show how the
             // last page looks when it's not full.
-            const url2 = `${link}/Get/Batching/Report/Detail_ByJobNo.php?JobNo_get=${JobNum}`;
+            const url2 = `${link}/Get/Dosing/Report/Detail_ByJobNo.php?JobNo_get=${JobNum}`;
             fetch(url2)
                 .then((response) => response.json())
                 .then((json) => (items_2 = json.slice(0)));
-            const url3 = `${link}/Get/Batching/Report/Summary_ByJobNo.php?JobNo_get=${JobNum}`;
+            const url3 = `${link}/Get/Dosing/Report/Summary_ByJobNo.php?JobNo_get=${JobNum}`;
             fetch(url3)
                 .then((response) => response.json())
                 .then((json) => (items_3 = json.slice(0)));
+            // console.log(items_2);
         }
     }
     async function exportFile(JobNum: any) {
@@ -159,15 +161,15 @@
         if (typeof fetch !== "undefined") {
             // Slice a few off the end to show how the
             // last page looks when it's not full.
-            const url4 = `${link}/Get/Batching/Report/Report_ByJobNo.php?JobNo_get=${JobNum}`;
+            const url4 = `${link}/Get/Dosing/Report/Report_ByJobNo.php?JobNo_get=${JobNum}`;
             fetch(url4)
                 .then((response) => response.json())
                 .then((json) => (items_4 = json.slice(0)));
-            const url2 = `${link}/Get/Batching/Report/Detail_ByJobNo.php?JobNo_get=${JobNum}`;
+            const url2 = `${link}/Get/Dosing/Report/Detail_ByJobNo.php?JobNo_get=${JobNum}`;
             fetch(url2)
                 .then((response) => response.json())
                 .then((json) => (items_2 = json.slice(0)));
-            const url3 = `${link}/Get/Batching/Report/Summary_ByJobNo.php?JobNo_get=${JobNum}`;
+            const url3 = `${link}/Get/Dosing/Report/Summary_ByJobNo.php?JobNo_get=${JobNum}`;
             fetch(url3)
                 .then((response) => response.json())
                 .then((json) => (items_3 = json.slice(0)));
@@ -176,20 +178,21 @@
             //     console.log(items_4);
             // }, 500);
         }
-      
 
         const wb = utils.book_new();
-        const headersItemshead = [`Batching Report JobNo=${JobNum}`];
+        const headersItemshead = [`Dosing Report JobNo=${JobNum}`];
         const headersItems4 = [
             "Job No.",
             "Start DTM",
             "Stop DTM",
             "Recipe Name",
             "Batch Total",
+            "DosingNo",
+            "MixingNo",
             "Batch Actual",
             "Status",
         ];
-        const headersItemsname3 = ["Batching Material Usage Summary"];
+        const headersItemsname3 = ["Dosing Material Usage Summary"];
         const headersItems3 = [
             "Job No.",
             "Batch Total",
@@ -200,7 +203,7 @@
             "Weight Ac",
             "Weight Diff",
         ];
-        const headersItemsname2 = ["Batching Process Detail"];
+        const headersItemsname2 = ["Dosing Process Detail"];
         const headersItems2 = [
             "Job No.",
             "Batch No.",
@@ -213,11 +216,11 @@
             "Weight SP",
             "Weight AC",
             "Weight Diff",
-            "Silo Name",
-            "Line",
             "Remark",
         ];
         setTimeout(() => {
+            
+
             const combinedItems = [
                 headersItemshead,
                 headersItems4,
@@ -281,17 +284,14 @@
                 }); // Set width for the specific column
             });
 
-            writeFileXLSX(wb, `Batching Report${JobNum}.xlsx`);
+            writeFileXLSX(wb, `Liquid Dosing Report${JobNum}.xlsx`);
         }, 2000);
     }
 </script>
 
-<!-- 
-<input type="date" on:change={handleDateChange} />
-<p>Selected date: {selectedDate}</p> -->
 <div class="bar">
-    <OverflowMenu style="background-color: #4b7e7b;" />
-    <p class="namebar">เงื่อนไขการดึงข้อมูลรายงาน Batching Report</p>
+    <OverflowMenu style="background-color: #36a9e1;" />
+    <p class="namebar">เงื่อนไขการดึงข้อมูลรายงาน Liquid Dosing Report</p>
 </div>
 <div class="container text-center">
     <div class="table-wrapper">
@@ -357,7 +357,11 @@
                     >
                     <Cell
                         style="text-align: center; vertical-align: middle; font-size: 1.125rem; 
-                    line-height: 1.75rem;">Batch AC</Cell
+                    line-height: 1.75rem;">DosingNo</Cell
+                    >
+                    <Cell
+                        style="text-align: center; vertical-align: middle; font-size: 1.125rem; 
+                line-height: 1.75rem;">MixingNo</Cell
                     >
                     <Cell
                         style="text-align: center; vertical-align: middle; font-size: 1.125rem; 
@@ -392,7 +396,11 @@
                             >
                             <Cell
                                 style="text-align: center; vertical-align: middle;"
-                                >{item.BatchActual}</Cell
+                                >{item.DosingNo}</Cell
+                            >
+                            <Cell
+                                style="text-align: center; vertical-align: middle;"
+                                >{item.MixerNo}</Cell
                             >
                             <Cell
                                 style="text-align: center; vertical-align: middle;"
@@ -555,7 +563,7 @@
                 <button
                     class="textclass bg-gray-500 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-l"
                     style="width: 50%; flex-grow: 1; background-color: {processingItems
-                        ? '#4b7e7b'
+                        ? '#36a9e1'
                         : undefined}; color: white;"
                     on:click={() => (processingItems = true)}
                 >
@@ -564,11 +572,11 @@
                 <button
                     class="textclass bg-gray-500 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r"
                     style="width: 50%; flex-grow: 1; background-color: {!processingItems
-                        ? '#4b7e7b'
+                        ? '#36a9e1'
                         : undefined}; color: white;"
                     on:click={() => (processingItems = false)}
                 >
-                    Batching Material Usage Summary
+                    Dosing Material Usage Summary
                 </button>
             </div>
             {#if processingItems === true}
@@ -594,14 +602,6 @@
                             <Cell
                                 style="padding: 0; text-align: center; vertical-align: middle; font-size: 1.125rem; 
                             line-height: 1.75rem;">Raw name</Cell
-                            >
-                            <Cell
-                                style="padding: 0; text-align: center; vertical-align: middle; font-size: 1.125rem; 
-                            line-height: 1.75rem;">Silo Name</Cell
-                            >
-                            <Cell
-                                style="padding: 0; text-align: center; vertical-align: middle; font-size: 1.125rem; 
-                            line-height: 1.75rem;">Line</Cell
                             >
                             <Cell
                                 style="padding: 0; text-align: center; vertical-align: middle; font-size: 1.125rem; 
@@ -636,7 +636,7 @@
                     <Body>
                         {#each filteredItems2.slice(start_2, end_2) as item_2}
                             {#if item_2.BatchNumber.includes(searchTerm2)}
-                                <Row style=" line-height: 1rem; height: 20px; {item_2.Process == 'Total Batching' ? 'background-color: yellow;' : ''}">
+                                <Row style=" line-height: 1rem; height: 20px; {item_2.Process == 'Total Dosing' ? 'background-color: yellow;' : ''}">
                                     <Cell
                                         style="margin: 0; padding: 0;  text-align: center; vertical-align: middle; line-height: 1rem; height: 1.5rem;"
                                         >{item_2.JobNo}</Cell
@@ -660,18 +660,6 @@
                                         >{item_2.RawMatName == null
                                             ? ""
                                             : item_2.RawMatName}</Cell
-                                    >
-                                    <Cell
-                                        style="margin: 0; padding: 0;  text-align: center; vertical-align: middle; line-height: 1rem; height: 1.5rem;"
-                                        >{item_2.SiloName == null
-                                            ? ""
-                                            : item_2.SiloName}</Cell
-                                    >
-                                    <Cell
-                                        style="margin: 0; padding: 0;  text-align: center; vertical-align: middle; line-height: 1rem; height: 1.5rem;"
-                                        >{item_2.DosingLine == null
-                                            ? ""
-                                            : item_2.DosingLine}</Cell
                                     >
                                     <Cell
                                         style="margin: 0; padding: 0; text-align: center; vertical-align: middle; line-height: 1rem; height: 1.5rem;"
@@ -982,14 +970,12 @@
         align-items: center;
         height: 41px;
         width: 103%;
-        background-color: #4b7e7b;
     }
     .namebar {
-        border: 2px solid #4b7e7b;
+        border: 2px solid #36a9e1;
         height: 40px;
-
         flex-grow: 1;
-        background-color: #4b7e7b;
+        background-color: #36a9e1;
         display: flex;
         align-items: center;
         color: rgb(250 250 250);
